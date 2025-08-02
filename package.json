@@ -1,0 +1,46 @@
+{
+  "name": "spotify-music-stats",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "lint": "next lint",
+    "test": "jest",
+    "test:unit": "jest --testPathPattern=tests/unit",
+    "test:integration": "jest --testPathPattern=tests/integration",
+    "test:domain": "jest --testPathPattern=tests/unit/domain",
+    "prisma:generate": "prisma generate",
+    "prisma:migrate": "prisma migrate dev",
+    "prisma:studio": "prisma studio"
+  },
+  "dependencies": {
+    "@auth/prisma-adapter": "^2.10.0",
+    "@prisma/client": "^6.13.0",
+    "@upstash/ratelimit": "^2.0.6",
+    "@upstash/redis": "^1.35.3",
+    "inversify": "^7.7.0",
+    "ioredis": "^5.7.0",
+    "next": "14.2.19",
+    "next-auth": "^5.0.0-beta.29",
+    "prisma": "^6.13.0",
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1",
+    "redis": "^5.7.0",
+    "reflect-metadata": "^0.2.2"
+  },
+  "devDependencies": {
+    "@testing-library/jest-dom": "^6.6.4",
+    "@testing-library/react": "^16.3.0",
+    "@types/jest": "^30.0.0",
+    "@types/node": "^20",
+    "@types/react": "^18",
+    "@types/react-dom": "^18",
+    "eslint": "^8",
+    "eslint-config-next": "14.2.19",
+    "jest": "^30.0.5",
+    "jest-environment-jsdom": "^30.0.5",
+    "typescript": "^5"
+  }
+}
