@@ -251,6 +251,14 @@ button:hover .bg-green-600 {
   color: #374151;
 }
 
+.hover\:bg-green-700:hover {
+  background-color: #047857;
+}
+
+.disabled\:opacity-50:disabled {
+  opacity: 0.5;
+}
+
 .border-4 {
   border-width: 4px;
 }

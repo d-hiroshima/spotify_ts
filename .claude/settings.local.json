@@ -7,7 +7,16 @@
       "Bash(npx create-next-app:*)",
       "Bash(npm install:*)",
       "Bash(npx prisma init:*)",
-      "Bash(npm run prisma:generate:*)"
+      "Bash(npm run prisma:generate:*)",
+      "Bash(docker-compose up:*)",
+      "Bash(npm uninstall:*)",
+      "Bash(docker-compose:*)",
+      "Bash(docker logs:*)",
+      "Bash(docker exec:*)",
+      "Bash(docker restart:*)",
+      "Bash(timeout 5 docker logs -f spotify_ts-app-1)",
+      "Bash(npx prisma migrate dev:*)",
+      "Bash(curl:*)"
     ],
     "deny": []
   }

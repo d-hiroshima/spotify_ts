@@ -73,28 +73,6 @@ docker-compose exec app npm run prisma:migrate
 # http://localhost:3000
 ```
 
-### 方法2: ローカル環境で起動
-
-#### 1. PostgreSQLとRedisをインストール・起動
-
-**macOS (Homebrew)**:
-```bash
-brew install postgresql@15 redis
-brew services start postgresql@15
-brew services start redis
-```
-
-**Windows**:
-- PostgreSQL: [公式サイト](https://www.postgresql.org/download/windows/)からインストーラーをダウンロード
-- Redis: [Redis for Windows](https://github.com/microsoftarchive/redis/releases)をダウンロード
-
-**Linux (Ubuntu/Debian)**:
-```bash
-sudo apt update
-sudo apt install postgresql postgresql-contrib redis-server
-sudo systemctl start postgresql
-sudo systemctl start redis
-```
 
 #### 2. データベースの作成
 

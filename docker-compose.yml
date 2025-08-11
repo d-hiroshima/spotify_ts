@@ -17,11 +17,6 @@ services:
     depends_on:
       - postgres
       - redis
-    command: sh -c "npx prisma migrate dev && npm run dev"
-    volumes:
-      - .:/app
-      - /app/node_modules
-      - /app/.next
 
   postgres:
     image: postgres:15-alpine

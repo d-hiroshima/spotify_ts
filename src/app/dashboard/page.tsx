@@ -1,31 +1,29 @@
-import { getServerSession } from 'next-auth'
-import { authOptions } from '@/infrastructure/config/auth.config'
+import { auth } from '@/infrastructure/config/auth.config'
+import { Box, Typography } from '@mui/material'
 import { StatsOverview } from './components/StatsOverview'
 import { TopArtists } from './components/TopArtists'
 import { TopTracks } from './components/TopTracks'
 import { ListeningPatterns } from './components/ListeningPatterns'
 
 export default async function DashboardPage() {
-  const session = await getServerSession(authOptions)
+  const session = await auth()
 
   return (
-    <div className="px-4 py-6 sm:px-0">
-      <div className="border-4 border-dashed border-gray-200 rounded-lg p-4">
-        <h2 className="text-2xl font-bold mb-6">ダッシュボード</h2>
-        
-        <div className="grid grid-cols-1 gap-6 mb-8">
-          <StatsOverview />
-        </div>
+    <Box>
+      <Typography variant="h4" component="h2" gutterBottom>
+        ダッシュボード
+      </Typography>
+      
+      <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
+        <StatsOverview />
 
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 3 }}>
           <TopArtists />
           <TopTracks />
-        </div>
+        </Box>
 
-        <div className="mt-8">
-          <ListeningPatterns />
-        </div>
-      </div>
-    </div>
+        <ListeningPatterns />
+      </Box>
+    </Box>
   )
 }
