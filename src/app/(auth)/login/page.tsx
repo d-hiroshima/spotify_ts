@@ -13,7 +13,7 @@ function LoginContent() {
 
   const handleLogin = () => {
     // @see https://developer.spotify.com/documentation/web-api/concepts/redirect_uri
-    const callbackUrl = `http://127.0.0.1:3000${from}`
+    const callbackUrl = `${process.env.NEXT_PUBLIC_APP_URL}${from}`
     signIn('spotify', { 
       callbackUrl,
       redirect: true 

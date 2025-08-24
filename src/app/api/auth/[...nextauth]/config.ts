@@ -1,6 +1,8 @@
 import NextAuth from 'next-auth'
 import SpotifyProvider from 'next-auth/providers/spotify'
 
+const SPOTIFY_URL = 'https://accounts.spotify.com/authorize'
+
 const scopes = [
   'user-read-recently-played',
   'user-top-read',
@@ -9,15 +11,22 @@ const scopes = [
   'playlist-read-private'
 ].join(' ')
 
-export const { handlers, signIn, signOut, auth } = NextAuth({
+const authConfig = NextAuth({
   trustHost: true,
   providers: [
     SpotifyProvider({
       clientId: process.env.SPOTIFY_CLIENT_ID!,
       clientSecret: process.env.SPOTIFY_CLIENT_SECRET!,
       authorization: {
+        url: SPOTIFY_URL,
         params: {
           scope: scopes,
+          redirect_uri: `${process.env.NEXTAUTH_URL}/api/auth/callback/spotify`,
+        },
+      },
+      token: {
+        params: {
+          redirect_uri: `${process.env.NEXTAUTH_URL}/api/auth/callback/spotify`,
         },
       },
     }),
@@ -27,6 +36,19 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
     error: '/login',
   },
   callbacks: {
+    async signIn({ user, account, profile }) {
+      console.log('[NextAuth] SignIn Callback:', {
+        user,
+        account: account ? { 
+          provider: account.provider,
+          access_token: account.access_token ? 'exists' : 'missing',
+          refresh_token: account.refresh_token ? 'exists' : 'missing',
+          expires_at: account.expires_at
+        } : 'missing',
+        profile
+      })
+      return true
+    },
     authorized({ auth, request: { nextUrl } }) {
       const isLoggedIn = !!auth?.user
       const isOnDashboard = nextUrl.pathname.startsWith('/dashboard')
@@ -70,5 +92,18 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
     strategy: 'jwt',
   },
   secret: process.env.AUTH_SECRET || process.env.NEXTAUTH_SECRET,
-  debug: process.env.NODE_ENV === 'development',
+  debug: true,
+  logger: {
+    error(error) {
+      console.error('[NextAuth Error]:', error)
+    },
+    warn(warning) {
+      console.warn('[NextAuth Warning]:', warning)
+    },
+    debug(message, metadata) {
+      console.log('[NextAuth Debug]:', message, metadata)
+    }
+  },
 })
+
+export const { handlers, signIn, signOut, auth } = authConfig
