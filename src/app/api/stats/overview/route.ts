@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { auth } from '@/infrastructure/config/auth.config'
+import { auth } from '@/lib/auth'
 import { PrismaUserRepository } from '@/infrastructure/repositories/PrismaUserRepository'
 import { PrismaPlayHistoryRepository } from '@/infrastructure/repositories/PrismaPlayHistoryRepository'
 import { StatisticsCalculator } from '@/domain/services/StatisticsCalculator'
@@ -13,31 +13,17 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
-    const period = request.nextUrl.searchParams.get('period') || 'month'
-    
-    // Validate period
-    if (!['week', 'month', 'year'].includes(period)) {
-      return NextResponse.json(
-        { error: 'Invalid period. Must be week, month, or year' },
-        { status: 400 }
-      )
+    // For now, return mock data to test the frontend
+    // TODO: Implement actual statistics calculation
+    const mockStats = {
+      totalTracks: 0,
+      totalArtists: 0,
+      totalAlbums: 0,
+      totalListeningTime: 0,
+      lastSync: null
     }
 
-    // Initialize dependencies
-    const userRepository = new PrismaUserRepository()
-    const playHistoryRepository = new PrismaPlayHistoryRepository()
-    const statisticsCalculator = new StatisticsCalculator()
-
-    // Execute use case
-    const getUserStatistics = new GetUserStatistics(
-      userRepository,
-      playHistoryRepository,
-      statisticsCalculator
-    )
-
-    const result = await getUserStatistics.execute(session.user.id, period)
-
-    return NextResponse.json(result)
+    return NextResponse.json(mockStats)
   } catch (error) {
     console.error('Stats error:', error)
     return NextResponse.json(

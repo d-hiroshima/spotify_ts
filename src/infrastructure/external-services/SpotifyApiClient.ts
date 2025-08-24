@@ -1,4 +1,3 @@
-import { auth } from '@/infrastructure/config/auth.config'
 import { prisma } from '@/infrastructure/db/prisma'
 
 interface SpotifyTrack {
@@ -51,21 +50,32 @@ interface SpotifyTopItems<T> {
 
 export class SpotifyApiClient {
   private baseUrl = 'https://api.spotify.com/v1'
+  
+  constructor(private accessToken?: string) {}
 
-  private async getAccessToken(userId: string): Promise<string | null> {
-    const account = await prisma.account.findFirst({
-      where: {
-        userId,
-        provider: 'spotify',
-      },
-    })
-
-    if (!account?.access_token) {
-      throw new Error('No access token found')
+  private async getAccessToken(userId?: string): Promise<string | null> {
+    if (this.accessToken) {
+      return this.accessToken
     }
+    
+    if (userId) {
+      // Fallback to database lookup if needed
+      const account = await prisma.account.findFirst({
+        where: {
+          userId,
+          provider: 'spotify',
+        },
+      })
 
-    // TODO: Implement token refresh logic if expired
-    return account.access_token
+      if (!account?.access_token) {
+        throw new Error('No access token found')
+      }
+
+      // TODO: Implement token refresh logic if expired
+      return account.access_token
+    }
+    
+    throw new Error('No access token provided')
   }
 
   private async makeRequest<T>(
@@ -91,8 +101,8 @@ export class SpotifyApiClient {
   }
 
   async getRecentlyPlayed(
-    userId: string,
-    limit: number = 50
+    limit: number = 50,
+    userId?: string
   ): Promise<SpotifyRecentlyPlayed> {
     const accessToken = await this.getAccessToken(userId)
     if (!accessToken) throw new Error('No access token')
@@ -104,9 +114,9 @@ export class SpotifyApiClient {
   }
 
   async getTopArtists(
-    userId: string,
     timeRange: 'short_term' | 'medium_term' | 'long_term' = 'medium_term',
-    limit: number = 20
+    limit: number = 20,
+    userId?: string
   ): Promise<SpotifyTopItems<any>> {
     const accessToken = await this.getAccessToken(userId)
     if (!accessToken) throw new Error('No access token')
@@ -118,9 +128,9 @@ export class SpotifyApiClient {
   }
 
   async getTopTracks(
-    userId: string,
     timeRange: 'short_term' | 'medium_term' | 'long_term' = 'medium_term',
-    limit: number = 20
+    limit: number = 20,
+    userId?: string
   ): Promise<SpotifyTopItems<SpotifyTrack>> {
     const accessToken = await this.getAccessToken(userId)
     if (!accessToken) throw new Error('No access token')
@@ -132,8 +142,8 @@ export class SpotifyApiClient {
   }
 
   async getTrackAudioFeatures(
-    userId: string,
-    trackIds: string[]
+    trackIds: string[],
+    userId?: string
   ): Promise<{
     audio_features: Array<{
       id: string

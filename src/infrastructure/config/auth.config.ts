@@ -1,17 +1,17 @@
 import NextAuth from 'next-auth'
 import SpotifyProvider from 'next-auth/providers/spotify'
-import { PrismaAdapter } from '@auth/prisma-adapter'
-import { prisma } from '@/infrastructure/db/prisma'
 
 const scopes = [
   'user-read-recently-played',
   'user-top-read',
   'user-read-private',
-  'user-read-email'
+  'user-read-email',
+  'playlist-read-private'
 ].join(' ')
 
 export const { handlers, auth, signIn, signOut } = NextAuth({
-  adapter: PrismaAdapter(prisma),
+  secret: process.env.AUTH_SECRET || process.env.NEXTAUTH_SECRET,
+  trustHost: true,
   providers: [
     SpotifyProvider({
       clientId: process.env.SPOTIFY_CLIENT_ID!,
@@ -23,28 +23,6 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
       },
     }),
   ],
-  callbacks: {
-    async session({ session, token, user }) {
-      if (session.user && user) {
-        session.user.id = user.id
-      }
-      if (token?.accessToken) {
-        session.accessToken = token.accessToken as string
-      }
-      return session
-    },
-    async jwt({ token, account, user }) {
-      if (account) {
-        token.accessToken = account.access_token
-        token.refreshToken = account.refresh_token
-        token.expiresAt = account.expires_at
-      }
-      if (user) {
-        token.id = user.id
-      }
-      return token
-    },
-  },
   pages: {
     signIn: '/login',
     error: '/login',
@@ -52,48 +30,30 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
   session: {
     strategy: 'jwt',
   },
-})
-
-export const authOptions = {
-  adapter: PrismaAdapter(prisma),
-  providers: [
-    SpotifyProvider({
-      clientId: process.env.SPOTIFY_CLIENT_ID!,
-      clientSecret: process.env.SPOTIFY_CLIENT_SECRET!,
-      authorization: {
-        params: {
-          scope: scopes,
-        },
-      },
-    }),
-  ],
   callbacks: {
-    async session({ session, token, user }: any) {
-      if (session.user && user) {
-        session.user.id = user.id
-      }
-      if (token?.accessToken) {
-        session.accessToken = token.accessToken as string
-      }
-      return session
-    },
-    async jwt({ token, account, user }: any) {
-      if (account) {
+    async jwt({ token, account, user }) {
+      // Save the access token and refresh token when the user signs in
+      if (account && account.access_token) {
         token.accessToken = account.access_token
         token.refreshToken = account.refresh_token
-        token.expiresAt = account.expires_at
+        token.accessTokenExpires = account.expires_at
+        token.userId = account.providerAccountId // Spotify user ID
       }
       if (user) {
-        token.id = user.id
+        token.userId = user.id
       }
       return token
     },
+    async session({ session, token }) {
+      // Send properties to the client
+      session.accessToken = token.accessToken as string
+      session.refreshToken = token.refreshToken as string
+      session.accessTokenExpires = token.accessTokenExpires as number
+      if (token.userId) {
+        session.user.id = token.userId as string
+      }
+      return session
+    },
   },
-  pages: {
-    signIn: '/login',
-    error: '/login',
-  },
-  session: {
-    strategy: 'jwt' as const,
-  },
-}
+  debug: process.env.NODE_ENV === 'development',
+})

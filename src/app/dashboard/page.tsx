@@ -1,29 +1,31 @@
-import { auth } from '@/infrastructure/config/auth.config'
-import { Box, Typography } from '@mui/material'
+import { DashboardLayout } from '@/components/layout/DashboardLayout'
+import { Box, Typography, Grid } from '@mui/material'
 import { StatsOverview } from './components/StatsOverview'
 import { TopArtists } from './components/TopArtists'
 import { TopTracks } from './components/TopTracks'
 import { ListeningPatterns } from './components/ListeningPatterns'
 
-export default async function DashboardPage() {
-  const session = await auth()
-
+export default function DashboardPage() {
   return (
-    <Box>
-      <Typography variant="h4" component="h2" gutterBottom>
+    <DashboardLayout>
+      <Typography variant="h4" component="h1" gutterBottom>
         ダッシュボード
       </Typography>
       
       <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
         <StatsOverview />
 
-        <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 3 }}>
-          <TopArtists />
-          <TopTracks />
-        </Box>
+        <Grid container spacing={3}>
+          <Grid item xs={12} md={6}>
+            <TopArtists />
+          </Grid>
+          <Grid item xs={12} md={6}>
+            <TopTracks />
+          </Grid>
+        </Grid>
 
         <ListeningPatterns />
       </Box>
-    </Box>
+    </DashboardLayout>
   )
 }

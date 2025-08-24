@@ -16,7 +16,15 @@
       "Bash(docker restart:*)",
       "Bash(timeout 5 docker logs -f spotify_ts-app-1)",
       "Bash(npx prisma migrate dev:*)",
-      "Bash(curl:*)"
+      "Bash(curl:*)",
+      "Bash(npm run dev:*)",
+      "Bash(cat:*)",
+      "Bash(npm search:*)",
+      "Bash(taskkill:*)",
+      "Bash(cmd.exe /c \"taskkill /PID 27248 /F\")",
+      "Bash(powershell:*)",
+      "Bash(docker:*)",
+      "Bash(wsl:*)"
     ],
     "deny": []
   }

@@ -19,7 +19,21 @@ import { MusicNote, PlayCircleOutline } from '@mui/icons-material'
 interface Track {
   id: string
   name: string
-  playCount: number
+  artists: Array<{
+    id: string
+    name: string
+  }>
+  album: {
+    id: string
+    name: string
+    images: Array<{
+      url: string
+      height: number
+      width: number
+    }>
+  }
+  duration_ms: number
+  popularity: number
 }
 
 export function TopTracks() {
@@ -29,10 +43,10 @@ export function TopTracks() {
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const response = await fetch('/api/stats/overview?period=month')
+        const response = await fetch('/api/spotify/top-tracks?limit=10')
         if (response.ok) {
           const data = await response.json()
-          setTracks(data.topTracks || [])
+          setTracks(data.items || [])
         }
       } catch (error) {
         console.error('Failed to fetch tracks:', error)
@@ -44,12 +58,10 @@ export function TopTracks() {
     fetchData()
   }, [])
 
-  const parseTrackInfo = (trackName: string) => {
-    const parts = trackName.split(' - ')
-    return {
-      title: parts[0] || trackName,
-      artist: parts[1] || ''
-    }
+  const formatDuration = (ms: number) => {
+    const minutes = Math.floor(ms / 60000)
+    const seconds = Math.floor((ms % 60000) / 1000)
+    return `${minutes}:${seconds.toString().padStart(2, '0')}`
   }
 
   return (
@@ -81,56 +93,54 @@ export function TopTracks() {
           </Box>
         ) : (
           <List>
-            {tracks.slice(0, 5).map((track, index) => {
-              const { title, artist } = parseTrackInfo(track.name)
-              return (
-                <ListItem 
-                  key={track.id} 
-                  disablePadding
-                  sx={{ mb: 1 }}
-                >
-                  <ListItemAvatar>
-                    <Avatar sx={{ bgcolor: 'secondary.main' }}>
-                      <MusicNote />
-                    </Avatar>
-                  </ListItemAvatar>
-                  <ListItemText
-                    primary={
-                      <Typography variant="body1" fontWeight="medium" noWrap>
-                        {title}
-                      </Typography>
-                    }
-                    secondary={
-                      <Box>
-                        {artist && (
-                          <Typography variant="body2" color="text.secondary" noWrap>
-                            {artist}
-                          </Typography>
-                        )}
-                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5, mt: 0.5 }}>
-                          <PlayCircleOutline fontSize="small" color="action" />
-                          <Typography variant="caption" color="text.secondary">
-                            {track.playCount}回再生
-                          </Typography>
-                        </Box>
-                      </Box>
-                    }
-                  />
-                  <Box sx={{ display: 'flex', alignItems: 'center' }}>
-                    <Typography variant="h6" color="text.secondary" sx={{ mr: 1 }}>
-                      #{index + 1}
+            {tracks.slice(0, 5).map((track, index) => (
+              <ListItem 
+                key={track.id} 
+                disablePadding
+                sx={{ mb: 1 }}
+              >
+                <ListItemAvatar>
+                  <Avatar 
+                    src={track.album.images?.[0]?.url} 
+                    sx={{ bgcolor: 'secondary.main' }}
+                  >
+                    {!track.album.images?.[0]?.url && <MusicNote />}
+                  </Avatar>
+                </ListItemAvatar>
+                <ListItemText
+                  primary={
+                    <Typography variant="body1" fontWeight="medium" noWrap>
+                      {track.name}
                     </Typography>
-                    {index === 0 && (
-                      <Chip
-                        label="HOT"
-                        color="error"
-                        size="small"
-                      />
-                    )}
-                  </Box>
-                </ListItem>
-              )
-            })}
+                  }
+                  secondary={
+                    <Box>
+                      <Typography variant="body2" color="text.secondary" noWrap>
+                        {track.artists.map(artist => artist.name).join(', ')}
+                      </Typography>
+                      <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5, mt: 0.5 }}>
+                        <PlayCircleOutline fontSize="small" color="action" />
+                        <Typography variant="caption" color="text.secondary">
+                          {formatDuration(track.duration_ms)} • 人気度: {track.popularity}
+                        </Typography>
+                      </Box>
+                    </Box>
+                  }
+                />
+                <Box sx={{ display: 'flex', alignItems: 'center' }}>
+                  <Typography variant="h6" color="text.secondary" sx={{ mr: 1 }}>
+                    #{index + 1}
+                  </Typography>
+                  {index === 0 && (
+                    <Chip
+                      label="HOT"
+                      color="error"
+                      size="small"
+                    />
+                  )}
+                </Box>
+              </ListItem>
+            ))}
           </List>
         )}
       </CardContent>

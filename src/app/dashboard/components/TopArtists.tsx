@@ -19,7 +19,16 @@ import { Person } from '@mui/icons-material'
 interface Artist {
   id: string
   name: string
-  playCount: number
+  followers: {
+    total: number
+  }
+  genres: string[]
+  images: Array<{
+    url: string
+    height: number
+    width: number
+  }>
+  popularity: number
 }
 
 export function TopArtists() {
@@ -29,10 +38,10 @@ export function TopArtists() {
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const response = await fetch('/api/stats/overview?period=month')
+        const response = await fetch('/api/spotify/top-artists?limit=10')
         if (response.ok) {
           const data = await response.json()
-          setArtists(data.topArtists || [])
+          setArtists(data.items || [])
         }
       } catch (error) {
         console.error('Failed to fetch artists:', error)
@@ -80,8 +89,11 @@ export function TopArtists() {
                 sx={{ mb: 1 }}
               >
                 <ListItemAvatar>
-                  <Avatar sx={{ bgcolor: 'primary.main' }}>
-                    {index + 1}
+                  <Avatar 
+                    src={artist.images?.[0]?.url} 
+                    sx={{ bgcolor: 'primary.main' }}
+                  >
+                    {!artist.images?.[0]?.url && (index + 1)}
                   </Avatar>
                 </ListItemAvatar>
                 <ListItemText
@@ -94,7 +106,7 @@ export function TopArtists() {
                     <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mt: 0.5 }}>
                       <Person fontSize="small" color="action" />
                       <Typography variant="body2" color="text.secondary">
-                        {artist.playCount}回再生
+                        人気度: {artist.popularity}
                       </Typography>
                     </Box>
                   }

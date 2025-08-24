@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { auth } from '@/infrastructure/config/auth.config'
+import { auth } from '@/lib/auth'
 import { SpotifyApiClient } from '@/infrastructure/external-services/SpotifyApiClient'
 import { PrismaPlayHistoryRepository } from '@/infrastructure/repositories/PrismaPlayHistoryRepository'
 import { PrismaTrackRepository } from '@/infrastructure/repositories/PrismaTrackRepository'
@@ -9,12 +9,12 @@ export async function POST(request: NextRequest) {
   try {
     const session = await auth()
     
-    if (!session?.user?.id) {
+    if (!session?.user?.id || !session?.accessToken) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
-    // Initialize dependencies
-    const spotifyClient = new SpotifyApiClient()
+    // Initialize dependencies with access token
+    const spotifyClient = new SpotifyApiClient(session.accessToken)
     const playHistoryRepository = new PrismaPlayHistoryRepository()
     const trackRepository = new PrismaTrackRepository()
 
@@ -29,12 +29,14 @@ export async function POST(request: NextRequest) {
 
     return NextResponse.json({
       success: true,
+      synced: true,
+      message: 'Data synchronized successfully',
       ...result
     })
   } catch (error) {
     console.error('Sync error:', error)
     return NextResponse.json(
-      { error: 'Failed to sync play history' },
+      { error: error instanceof Error ? error.message : 'Failed to sync play history' },
       { status: 500 }
     )
   }

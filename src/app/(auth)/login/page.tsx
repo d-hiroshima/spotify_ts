@@ -9,9 +9,15 @@ import { LibraryMusic } from '@mui/icons-material'
 function LoginContent() {
   const searchParams = useSearchParams()
   const from = searchParams.get('from') || '/dashboard'
+  const error = searchParams.get('error')
 
   const handleLogin = () => {
-    signIn('spotify', { callbackUrl: from })
+    // @see https://developer.spotify.com/documentation/web-api/concepts/redirect_uri
+    const callbackUrl = `http://127.0.0.1:3000${from}`
+    signIn('spotify', { 
+      callbackUrl,
+      redirect: true 
+    })
   }
 
   return (
@@ -46,6 +52,12 @@ function LoginContent() {
             あなたの音楽統計を見てみましょう
           </Typography>
 
+          {error && (
+            <Typography variant="body2" color="error" textAlign="center">
+              ログインエラー: {error}
+            </Typography>
+          )}
+
           <Button
             variant="contained"
             color="primary"
@@ -74,7 +86,7 @@ function LoginContent() {
 
 export default function LoginPage() {
   return (
-    <Suspense fallback={<div>Loading...</div>}>
+    <Suspense fallback={<></>}>
       <LoginContent />
     </Suspense>
   )

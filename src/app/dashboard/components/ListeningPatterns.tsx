@@ -24,21 +24,9 @@ export function ListeningPatterns() {
   const theme = useTheme()
 
   useEffect(() => {
-    const fetchData = async () => {
-      try {
-        const response = await fetch('/api/stats/overview?period=month')
-        if (response.ok) {
-          const data = await response.json()
-          setPatterns(data.listeningPatterns || [])
-        }
-      } catch (error) {
-        console.error('Failed to fetch patterns:', error)
-      } finally {
-        setLoading(false)
-      }
-    }
-
-    fetchData()
+    // For now, show mock data
+    setLoading(false)
+    // TODO: Implement actual listening patterns from Spotify API
   }, [])
 
   const maxCount = Math.max(...patterns.map(p => p.count), 1)

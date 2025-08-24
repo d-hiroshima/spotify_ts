@@ -21,15 +21,17 @@
 
 1. [Spotify Developer Dashboard](https://developer.spotify.com/dashboard) にアクセス
 2. 新しいアプリを作成
-3. Redirect URI に `http://localhost:3000/api/auth/callback/spotify` を追加
+3. **重要**: Redirect URIに以下を追加（環境に応じて）:
+   - 開発環境: `http://127.0.0.1:3000/api/auth/callback/spotify`
+   - 本番環境: `https://your-domain.com/api/auth/callback/spotify`
 4. Client ID と Client Secret を取得
 
 ### 2. 環境変数の設定
 
-`.env.local` ファイルを作成:
+`.env` ファイルを作成:
 
 ```bash
-cp .env.local.example .env.local
+cp .env.example .env
 ```
 
 以下の値を設定:
@@ -42,120 +44,128 @@ DATABASE_URL="postgresql://user:password@localhost:5432/spotify_stats"
 REDIS_URL="redis://localhost:6379"
 
 # NextAuth
-NEXTAUTH_URL="http://localhost:3000"
-NEXTAUTH_SECRET=your-secret-key # openssl rand -base64 32 で生成
+NEXTAUTH_URL="http://127.0.0.1:3000"
+NEXTAUTH_SECRET="your-secret-key" # openssl rand -base64 32 で生成
+AUTH_URL="http://127.0.0.1:3000"
+AUTH_SECRET="your-secret-key"
+AUTH_TRUST_HOST="true"
 
 # Spotify API
-SPOTIFY_CLIENT_ID=your-spotify-client-id
-SPOTIFY_CLIENT_SECRET=your-spotify-client-secret
+SPOTIFY_CLIENT_ID="your-spotify-client-id"
+SPOTIFY_CLIENT_SECRET="your-spotify-client-secret"
+
+# Application
+NEXT_PUBLIC_APP_URL="http://127.0.0.1:3000"
 ```
+
+**本番環境では**: `.env.production.example`を参考に、すべてのURLを本番ドメインに変更してください。
 
 ## 起動方法
 
-### 方法1: Docker Compose を使用（推奨）
+### 🚀 開発モード（ホットリロード有効）
 
 ```bash
-# リポジトリをクローン
-git clone <repository-url>
-cd spotify_ts
+# Docker開発環境でホットリロード
+npm run dev:docker
 
-# 環境変数を設定
-cp .env.local.example .env.local
-# .env.localを編集してSpotifyの認証情報を設定
-
-# Docker環境を起動
-docker-compose up -d
-
-# 初回のみ: データベースのマイグレーション
-docker-compose exec app npm run prisma:migrate
-
-# アプリケーションにアクセス
-# http://localhost:3000
+# または
+docker-compose -f docker-compose.dev.yml up --build
 ```
 
+**特徴:**
+- ✅ ファイル変更時の自動リロード
+- ✅ リアルタイムでコード変更が反映
+- ✅ デバッグ情報表示
+- ✅ ボリュームマウントによる高速開発
 
-#### 2. データベースの作成
+### 🏭 本番モード
 
 ```bash
-# PostgreSQLにログイン
-psql -U postgres
+# 本番環境用
+npm run prod:docker
 
-# データベースとユーザーを作成
-CREATE USER user WITH PASSWORD 'password';
-CREATE DATABASE spotify_stats OWNER user;
-\q
+# または
+docker-compose up --build
 ```
 
-#### 3. アプリケーションのセットアップ
+### 🔧 ローカル開発（Node.js直接実行）
 
 ```bash
-# 依存関係をインストール
+# 依存関係のインストール
 npm install
 
-# Prismaクライアントを生成
-npm run prisma:generate
+# データベース起動（PostgreSQL + Redis）
+docker-compose up postgres redis -d
 
-# データベースのマイグレーション
-npm run prisma:migrate
+# Prisma設定
+npx prisma migrate dev
+npx prisma generate
 
-# 開発サーバーを起動
+# 開発サーバー起動
 npm run dev
-
-# アプリケーションにアクセス
-# http://localhost:3000
 ```
 
-## 開発ツール
-
-### Prisma Studio（データベース管理UI）
-
-```bash
-npm run prisma:studio
-# http://localhost:5555 でアクセス
-```
-
-### データベースのリセット
-
-```bash
-# Docker使用時
-docker-compose exec app npx prisma migrate reset
-
-# ローカル環境
-npx prisma migrate reset
-```
-
-## トラブルシューティング
-
-### ポートが使用中の場合
-
-```bash
-# PostgreSQL (5432) や Redis (6379) のポートを確認
-lsof -i :5432
-lsof -i :6379
-
-# Docker Composeの場合、ポート番号を変更可能
-# docker-compose.yml の ports セクションを編集
-```
-
-### 認証エラーが発生する場合
-
-1. Spotify Developer Dashboardで Redirect URI が正しく設定されているか確認
-2. `.env.local` の `NEXTAUTH_SECRET` が設定されているか確認
-3. ブラウザのCookieをクリアして再度ログイン
-
-## プロジェクト構造
-
-DDDオニオンアーキテクチャに基づいた構造:
+## 📁 プロジェクト構造
 
 ```
 src/
-├── app/                    # Next.js App Router (Presentation Layer)
-├── domain/                 # Domain Layer (Core Business Logic)
-├── application/            # Application Layer (Use Cases)
-├── infrastructure/         # Infrastructure Layer
-└── interface-adapters/     # Interface Adapters Layer
+├── app/                    # Next.js App Router
+├── components/             # 共通UIコンポーネント
+├── domain/                 # ドメインロジック
+├── application/            # アプリケーションサービス
+├── infrastructure/         # インフラ層
+│   ├── config/            # 設定
+│   ├── db/                # データベース
+│   ├── external-services/ # 外部API
+│   └── repositories/      # リポジトリ実装
+└── middleware.ts          # NextAuth認証ミドルウェア
 ```
 
-## ライセンス
+## 🔧 よく使うコマンド
 
-MIT
+```bash
+# 開発環境起動（ホットリロード）
+npm run dev:docker
+
+# 本番環境起動
+npm run prod:docker
+
+# ログ確認
+docker-compose logs -f app
+
+# コンテナ停止
+docker-compose down
+
+# データベースリセット
+docker-compose down -v
+```
+
+## 🌐 アクセス
+
+- **アプリケーション**: http://127.0.0.1:3000
+- **ログイン**: http://127.0.0.1:3000/login
+- **ダッシュボード**: http://127.0.0.1:3000/dashboard
+
+**注意**: `localhost`ではなく`127.0.0.1`を使用してください（Spotify OAuth要件）
+
+## 📊 テスト
+
+```bash
+# 全テスト実行
+npm test
+
+# ユニットテスト
+npm run test:unit
+
+# インテグレーションテスト
+npm run test:integration
+
+# ドメインテスト
+npm run test:domain
+```
+
+## 📚 詳細ドキュメント
+
+- [Spotifyセットアップガイド](./docs/spotify-setup.md)
+- [デプロイメントガイド](./docs/deployment.md)
+- [アーキテクチャ](./docs/spotify-music-stats-architecture.md)
